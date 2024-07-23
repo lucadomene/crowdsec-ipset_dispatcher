@@ -1,0 +1,14 @@
+---
+- name: 'SSH root'
+  scenarios: ['lucadomene/ssh-root']
+  ipset: ssh-root
+  create: false
+
+- name: 'SSH bruteforce'
+  scenarios: ['crowdsecurity/ssh-bf', 'crowdsecurity/ssh-slow-bf']
+  ipset: ssh-bruteforce
+  create: true
+
+- name: 'HTTP'
+  match-scenarios: ['http']
+  ipset: http

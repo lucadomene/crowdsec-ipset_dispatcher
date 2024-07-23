@@ -1,0 +1,10 @@
+#LAPI credentials
+auth:
+  api: ZTQ7NUQkf8a3aYVO9+VhFHL8Xwga8m0ZkGC+XsYFxUM
+
+#LAPI location
+server:
+  protocol: http
+  host: 127.0.0.1
+  port: 8080
+  version: v1
