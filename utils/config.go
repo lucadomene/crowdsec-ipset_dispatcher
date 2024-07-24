@@ -10,7 +10,7 @@ import (
 var Config struct {
 	mu sync.Mutex
 	Authentication struct {
-		API string `yaml:"api"`
+	API string `yaml:"api"`
 	} `yaml:"auth"`
 
 	Server struct {
@@ -24,7 +24,7 @@ var Config struct {
 func ImportConfig(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return err
+	return err
 	}
 	defer file.Close()
 	log.Printf("found configuration file %v", path)
