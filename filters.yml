@@ -3,16 +3,13 @@
   scenarios: ['lucadomene/ssh-root']
   ipset: ssh-root
   type: 'hash:ip'
-  append: true
 
 - name: 'SSH bruteforce'
   scenarios: ['crowdsecurity/ssh-bf', 'crowdsecurity/ssh-slow-bf']
   ipset: ssh-bruteforce
   type: 'hash:ip'
-  append: true
 
 - name: 'HTTP'
   match-scenarios: ['http']
   ipset: http
   type: 'hash:ip'
-  append: true

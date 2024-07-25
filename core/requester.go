@@ -3,8 +3,8 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"lucadomeneghetti/LAPIexporter/models"
-	"lucadomeneghetti/LAPIexporter/utils"
+	"lucadomeneghetti/ipset_dispatcher/models"
+	"lucadomeneghetti/ipset_dispatcher/utils"
 	"net/http"
 )
 
