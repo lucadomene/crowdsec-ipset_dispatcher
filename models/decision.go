@@ -5,7 +5,7 @@ type Decision struct {
 	Scenario  string `json:"scenario"`
 	IPAddress string `json:"ip"`
 	Type      string `json:"type"`
-	Duration  int    `json:"duration"`
+	Duration  string `json:"duration"`
 	Action    string
 }
 

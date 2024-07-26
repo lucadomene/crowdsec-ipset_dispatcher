@@ -8,3 +8,5 @@ server:
   host: 127.0.0.1
   port: 8080
   version: v1
+  update: 5s
+  retries: 5

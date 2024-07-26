@@ -1,13 +1,15 @@
 package core
 
 import (
-	"fmt"
 	"log"
+	"log/slog"
+	"lucadomeneghetti/ipset_dispatcher/ipset"
 	"lucadomeneghetti/ipset_dispatcher/models"
+	"math"
 	"os"
 	"regexp"
+	"time"
 
-	"github.com/janeczku/go-ipset/ipset"
 	"gopkg.in/yaml.v2"
 )
 
@@ -15,13 +17,14 @@ type Filter struct {
 	Name           string   `yaml:"name"`
 	Scenarios      []string `yaml:"scenarios"`
 	MatchScenarios []string `yaml:"match-scenarios"`
-	Ipset          string   `yaml:"ipset"`
 	Type           string   `yaml:"type"`
+	Ipset          string   `yaml:"ipset"`
+	IpsetType      string   `yaml:"ipset-type"`
 }
 
-func InitializeFilters(path string) {
+func InitializeFilters(path string) []chan models.Decision {
 	filters := parseFiltersConfig(path)
-	spawnFilters(filters)
+	return spawnFilters(filters)
 }
 
 func parseFiltersConfig(path string) (filters []Filter) {
@@ -39,18 +42,18 @@ func parseFiltersConfig(path string) (filters []Filter) {
 	}
 
 	log.Printf("successfully parsed filters configuration from %v", path)
-	fmt.Println(filters)
 	return
 }
 
-func spawnFilters(filters []Filter) {
+func spawnFilters(filters []Filter) []chan models.Decision {
 	channels := make([]chan models.Decision, len(filters))
 	for i := range channels {
 		channels[i] = make(chan models.Decision)
 	}
 	for i, filter := range filters {
-		go runningFilter(filter, channels[i])
+		runningFilter(filter, channels[i])
 	}
+	return channels
 }
 
 func filterDecision(filter Filter, decision models.Decision) bool {
@@ -66,23 +69,40 @@ func filterDecision(filter Filter, decision models.Decision) bool {
 			return true
 		}
 	}
+
+	if len(filter.Type) > 0 {
+		if decision.Type == filter.Type {
+			return true
+		}
+	}
 	return false
 }
 
 func runningFilter(filter Filter, ch <-chan models.Decision) {
-	filterIpset, err := ipset.New(filter.Ipset, filter.Type, &ipset.Params{})
-	if err != nil {
-		log.Fatalf("failed to create ipset %v: %v", filter.Ipset, err)
-	}
+	filterIpset := ipset.CreateSet(filter.Ipset, filter.IpsetType)
 
 	for decision := range ch {
 		if filterDecision(filter, decision) {
-			switch decsion.Action {
+			switch decision.Action {
 			case "add":
-				filterIpset.Add(decision.IPAddress, decision.Duration)
+				duration_int, err := time.ParseDuration(decision.Duration)
+				if err != nil {
+					slog.Warn(err.Error())
+					break
+				}
+				duration_uint32 := uint32(math.Round(duration_int.Seconds()))
+				filterIpset.AddEntry(decision.IPAddress, duration_uint32)
 			case "del":
-				filterIpset.Del(decision.IPAddress)
+				filterIpset.DeleteEntry(decision.IPAddress)
 			}
+		}
+	}
+}
+
+func ForwardDecisions(decisions models.DecisionArray, channels []chan models.Decision) {
+	for _, dec := range decisions {
+		for _, ch := range channels {
+			ch <- dec
 		}
 	}
 }
