@@ -36,12 +36,14 @@ func main() {
 
 	var startup bool = true
 	channels := core.InitializeFilters("filters.yml")
+	log.Println("I'm here")
 	for {
 		select {
 		case <-sigintc:
 			terminateExecution(channels)
 		case <-ticker.C:
 			decisions, err := core.QueryUpdateDecisions(startup, utils.GetRetries())
+			log.Println(decisions)
 			if err != nil {
 				log.Fatalln(err)
 			}

@@ -51,13 +51,16 @@ func spawnFilters(filters []Filter) []chan models.Decision {
 		channels[i] = make(chan models.Decision)
 	}
 	for i, filter := range filters {
-		runningFilter(filter, channels[i])
+		go runningFilter(filter, channels[i])
 	}
 	return channels
 }
 
 func filterDecision(filter Filter, decision models.Decision) bool {
 	matches := make([]*regexp.Regexp, len(filter.MatchScenarios))
+	for i := range matches {
+		matches[i] = regexp.MustCompile(filter.MatchScenarios[i])
+	}
 	for _, match := range matches {
 		if match.MatchString(decision.Scenario) {
 			return true

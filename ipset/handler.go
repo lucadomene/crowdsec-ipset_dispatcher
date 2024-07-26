@@ -2,6 +2,7 @@ package ipset
 
 import (
 	"log"
+	"log/slog"
 	"net"
 
 	"github.com/lrh3321/ipset-go"
@@ -22,10 +23,11 @@ func checkSetExists(name string) bool {
 
 func CreateSet(name string, set_type string) (set *IpSet) {
 	if checkSetExists(name) {
-		log.Printf("ipset %v already exists", name)
+		log.Printf("ipset %v already exists, overwriting", name)
+		ipset.Flush(name)
 		return &IpSet{name: name}
 	}
-	err := ipset.Create(name, set_type, ipset.CreateOptions{})
+	err := ipset.Create(name, set_type, ipset.CreateOptions{Timeout: 300})
 	if err != nil {
 		log.Fatalf("failed to create ipset %v: %v", name, err)
 	}
@@ -33,20 +35,20 @@ func CreateSet(name string, set_type string) (set *IpSet) {
 	return &IpSet{name: name}
 }
 
-func (set *IpSet) AddEntry(entry string, duration uint32) error {
+func (set *IpSet) AddEntry(entry string, duration uint32) {
 	err := ipset.Add(set.name, &ipset.Entry{IP: net.ParseIP(entry), Timeout: &duration})
 	if err != nil {
-		log.Fatalf("failed to add entry %v to ipset %v", entry, set.name)
+		slog.Debug("failed to add entry " + entry + " to ipset " + set.name + ": " + err.Error())
+		return
 	}
 	log.Printf("successfully added entry %v to ipset %v", entry, set.name)
-	return nil
 }
 
-func (set *IpSet) DeleteEntry(entry string) error {
+func (set *IpSet) DeleteEntry(entry string) {
 	err := ipset.Del(set.name, &ipset.Entry{IP: net.ParseIP(entry)})
 	if err != nil {
-		log.Fatalf("failed to delete entry %v from ipset %v", entry, set.name)
+		slog.Debug("failed to delete entry " + entry + " from ipset " + set.name + ": " + err.Error())
+		return
 	}
 	log.Printf("successfully deleted entry %v from ipset %v", entry, set.name)
-	return nil
 }
