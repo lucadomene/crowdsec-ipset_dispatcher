@@ -15,7 +15,7 @@ func terminateExecution(channels []chan models.Decision) {
 	for _, ch := range channels {
 		close(ch)
 	}
-	log.Println("received SIGINT, terminating")
+	log.Println("closed all filter channels")
 	os.Exit(0)
 }
 
